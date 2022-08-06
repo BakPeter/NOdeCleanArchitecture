@@ -1,22 +1,25 @@
 const Chance = require('chance');
-const chance = new Chance();
-
 const { cloneDeep } = require('lodash');
 
 const {
   productsRepository,
 } = require('../../../src/frameworks/repositories/inMemory');
-
 const { Product } = require('../../../src/entities');
+
+const chance = new Chance();
 
 describe('Product repository', () => {
   test('New product should be added and returned', async () => {
     const testProduct = new Product({
       name: chance.name(),
       description: chance.sentence({ words: 5 }),
+      images: [chance.url(), chance.url()],
       price: chance.floating({ min: 0, max: 100 }),
       color: chance.color(),
       meta: {
+        deliver: {
+          from: 'China',
+        },
         brand: {
           name: 'bamba',
           companyL: 'Osem',
@@ -29,8 +32,9 @@ describe('Product repository', () => {
     expect(addeProduct).toBeDefined();
     expect(addeProduct.id).toBeDefined();
     expect(addeProduct.name).toBe(testProduct.name);
-    expect(addeProduct.lastName).toBe(testProduct.lastName);
-    expect(addeProduct.gender).toBe(testProduct.gender);
+    expect(addeProduct.description).toBe(testProduct.description);
+    expect(addeProduct.images).toEqual(testProduct.images);
+    expect(addeProduct.price).toBe(testProduct.price);
     expect(addeProduct.meta).toEqual(testProduct.meta);
 
     let returnedProduct = await productsRepository.getById(addeProduct.id);
@@ -40,7 +44,6 @@ describe('Product repository', () => {
   });
 
   test('New product should be deleted', async () => {
-    //init two users
     const willBeDeletedProduct = new Product({
       name: chance.name(),
       description: chance.sentence({ words: 5 }),
@@ -51,6 +54,9 @@ describe('Product repository', () => {
           name: 'bamba',
           companyL: 'Osem',
         },
+        deliver: {
+          from: 'China',
+        },
       },
     });
 
@@ -60,6 +66,9 @@ describe('Product repository', () => {
       price: chance.floating({ min: 0, max: 100 }),
       color: chance.color(),
       meta: {
+        deliver: {
+          from: 'China',
+        },
         brand: {
           name: 'bisli',
           companyL: 'Shtraus',
@@ -67,7 +76,6 @@ describe('Product repository', () => {
       },
     });
 
-    //add two users
     const [willBeDeletedAddedProduct, shouldStayAddedProduct] =
       await Promise.all([
         productsRepository.add(willBeDeletedProduct),
@@ -79,19 +87,19 @@ describe('Product repository', () => {
     expect(shouldStayAddedProduct).toBeDefined();
     expect(shouldStayAddedProduct).toEqual(shouldStayProduct);
 
-    //delete one user
+    //delete one product
     const deletedProduct = await productsRepository.delete(
       willBeDeletedAddedProduct
     );
     expect(deletedProduct).toEqual(willBeDeletedAddedProduct);
 
-    //try to get the deleted user ( should be undifined )
+    //try to get the deleted product ( should be undifined )
     const shouldBeUndefinedProduct = await productsRepository.getById(
       deletedProduct.id
     );
     expect(shouldBeUndefinedProduct).toBeUndefined();
 
-    //check the second user defined ( not deleted )
+    //check the second product defined ( not deleted )
     const shouldBeDefinedProduct = await productsRepository.getById(
       shouldStayAddedProduct.id
     );
@@ -99,13 +107,16 @@ describe('Product repository', () => {
   });
 
   test('New product should be updated', async () => {
-    // add a user
+    // add a product
     const testProduct = new Product({
       name: chance.name(),
       description: chance.sentence({ words: 5 }),
       price: chance.floating({ min: 0, max: 100 }),
       color: chance.color(),
       meta: {
+        deliver: {
+          from: 'China',
+        },
         brand: {
           name: 'bisli',
           companyL: 'Shtraus',
@@ -113,7 +124,7 @@ describe('Product repository', () => {
       },
     });
 
-    //update a user
+    //update a product
 
     const addedProduct = await productsRepository.add(testProduct);
     expect(addedProduct).toEqual(testProduct);
